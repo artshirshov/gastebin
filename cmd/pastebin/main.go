@@ -1,27 +1,26 @@
 package main
 
 import (
-	"io"
-	"log"
-	"net/http"
-	"time"
+	"context"
+	"github.com/artshirshov/gastebin/internal/app"
+	"github.com/artshirshov/gastebin/pkg/logger"
+	"go.uber.org/zap"
 )
 
-func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/hello", hello)
-	s := &http.Server{
-		Addr:         ":8080",
-		Handler:      mux,
-		ReadTimeout:  2 * time.Second,
-		WriteTimeout: 2 * time.Second,
-		IdleTimeout:  2 * time.Second,
-	}
-
-	log.Println("Starting server :8080")
-	log.Fatal(s.ListenAndServe())
+func init() {
+	logger.SetDefaultZapLogger()
 }
 
-func hello(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "Hello, world!")
+func main() {
+	ctx := context.Background()
+
+	a, err := app.NewApp(ctx)
+	if err != nil {
+		logger.Log.With(zap.Error(err)).Fatal("failed to init app")
+	}
+
+	err = a.Run()
+	if err != nil {
+		logger.Log.With(zap.Error(err)).Fatal("failed to run app")
+	}
 }
