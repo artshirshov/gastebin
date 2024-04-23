@@ -1,6 +1,7 @@
 package mapper
 
 import (
+	"github.com/artshirshov/gastebin/internal/model/expiration"
 	"github.com/artshirshov/gastebin/internal/model/paste"
 	"github.com/artshirshov/gastebin/internal/model/visibility"
 	"time"
@@ -41,12 +42,13 @@ func EntityToResponseDto(entity paste.Paste) (paste.ResponseDto, error) {
 
 func PasteDtoToEntity(hash string, dto paste.RequestDto) paste.Paste {
 	now := time.Now()
+	expiredAt := expiration.GetExpiration(dto.Expires, now)
 	return paste.Paste{
 		Hash:       hash,
 		Title:      dto.Title,
 		Visibility: dto.Visibility,
 		CreatedAt:  now,
-		ExpiredAt:  now.Add(time.Hour),
+		ExpiredAt:  expiredAt,
 		Content:    dto.Content,
 	}
 }

@@ -42,12 +42,12 @@ func (s *service) GetPasteByHash(
 
 	entity, getPasteError := s.repository.GetPasteByHash(ctx, hash)
 	if getPasteError != nil {
-		return model.ResponseDto{}, errors.New("")
+		return model.ResponseDto{}, errors.New("paste not found")
 	}
 
 	respDto, typeError := mapper.EntityToResponseDto(entity)
 	if typeError != nil {
-		return model.ResponseDto{}, errors.New("")
+		return model.ResponseDto{}, errors.New("mapping failed")
 	}
 
 	return respDto, nil
@@ -59,7 +59,7 @@ func (s *service) CreatePaste(
 ) (model.ResponseDto, error) {
 	remoteAddr := ctx.Value("remoteAddr").(string)
 	if remoteAddr == "" {
-		return model.ResponseDto{}, errors.New("")
+		return model.ResponseDto{}, errors.New("remote address is missing or invalid")
 	}
 	hash := hasher.GenerateHash(remoteAddr)
 	newEntity := mapper.PasteDtoToEntity(hash, reqDto)
@@ -72,7 +72,7 @@ func (s *service) CreatePaste(
 
 	respDto, typeError := mapper.EntityToResponseDto(entity)
 	if typeError != nil {
-		return model.ResponseDto{}, errors.New("")
+		return model.ResponseDto{}, errors.New("mapping failed")
 	}
 
 	return respDto, nil
@@ -84,23 +84,23 @@ func (s *service) UpdatePaste(
 	reqDto model.RequestDto,
 ) (model.ResponseDto, error) {
 	if validateErr := validateHash(hash); validateErr != nil {
-		return model.ResponseDto{}, errors.New("")
+		return model.ResponseDto{}, errors.New("mapping failed")
 	}
 
 	dbEntity, getErr := s.repository.GetPasteByHash(ctx, hash)
 	if getErr != nil {
-		return model.ResponseDto{}, errors.New("")
+		return model.ResponseDto{}, errors.New("paste not found")
 	}
 	mapper.UpdateFromDTO(&dbEntity, reqDto)
 
 	entity, updatePasteErr := s.repository.UpdatePaste(ctx, dbEntity)
 	if updatePasteErr != nil {
-		return model.ResponseDto{}, errors.New("")
+		return model.ResponseDto{}, errors.New("failed to update paste")
 	}
 
 	respDto, typeError := mapper.EntityToResponseDto(entity)
 	if typeError != nil {
-		return model.ResponseDto{}, errors.New("")
+		return model.ResponseDto{}, errors.New("mapping failed")
 	}
 
 	return respDto, nil
@@ -112,7 +112,7 @@ func (s *service) DeletePaste(
 ) error {
 	deleteErr := s.repository.DeletePaste(ctx, hash)
 	if deleteErr != nil {
-		return errors.New("")
+		return errors.New("failed to delete paste")
 	}
 	return nil
 }
